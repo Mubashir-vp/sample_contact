@@ -7,13 +7,27 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:email_validator/email_validator.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class Login extends StatelessWidget {
+class Login extends StatefulWidget {
   Login({Key? key}) : super(key: key);
-  ApiPostServices apiPostServices = ApiPostServices();
-  TextEditingController emailController = TextEditingController();
-  TextEditingController passwordController = TextEditingController();
   static GlobalKey<FormState> formkey = GlobalKey<FormState>();
+
+  @override
+  State<Login> createState() => _LoginState();
+}
+
+class _LoginState extends State<Login> {
+  
+  ApiPostServices apiPostServices = ApiPostServices();
+   Future tokenSaving({var token}) async {
+    final sharedPreference = await SharedPreferences.getInstance();
+    sharedPreference.setString("sharedtoken", token);
+  }
+
+  TextEditingController emailController = TextEditingController();
+
+  TextEditingController passwordController = TextEditingController();
 
   @override
   Widget build(
@@ -25,7 +39,7 @@ class Login extends StatelessWidget {
           builder: (controller) {
             return Scaffold(
               body: Form(
-                key: formkey,
+                key: Login.formkey,
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -135,7 +149,7 @@ class Login extends StatelessWidget {
                           "email": emailController.text,
                           "password": passwordController.text
                         };
-                        if (formkey.currentState!.validate()) {
+                        if (Login.formkey.currentState!.validate()) {
                           var response = await apiPostServices.login(
                             data: data,
                           );
@@ -144,9 +158,10 @@ class Login extends StatelessWidget {
                             currentFocus.unfocus();
                           }
                           if (response != null) {
-                           await controller.tokenSaving(
+                           await tokenSaving(
                               token: response.data!.token,
                             );
+
                             controller.loginSaving(
                               value: true,
                             );

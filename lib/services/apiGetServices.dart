@@ -6,24 +6,28 @@ import 'dart:developer';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:dio/dio.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-import '../model/userLoginModel.dart';
 
 class ApiGetServices {
-  static LoginController controller = prefix.Get.find();
-  var token = controller.tokenFetching();
+  static var controller = prefix.Get.put(LoginController());
+  Future<String?> tokenFetching() async {
+    var sharedPreference = await SharedPreferences.getInstance();
+    var token =  sharedPreference.getString("sharedtoken");
+    return token;
+  }
+
   Dio dio = Dio();
   late List<UsersList?> usersList;
 
- Future<UsersList?> userList() async {
+  Future<UsersList?> userList() async {
+    var token = await tokenFetching();
     var url = "http://65.0.85.128/index.php/api/users/list";
-        var pathUrl = Uri.parse(url);
+    var pathUrl = Uri.parse(url);
     try {
       var response = await http.get(
         pathUrl,
-        
-          headers: {"Authorization": token!},
-        
+        headers: {"Authorization": token!},
       );
       log(response.body);
       if (response.statusCode == 200) {
